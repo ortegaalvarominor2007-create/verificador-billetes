@@ -1,0 +1,9 @@
+{
+  "name": "Verificador Billetes Serie B",
+  "short_name": "Verificador",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#f2f2f2",
+  "theme_color": "#0a3d62",
+  "icons": []
+}
