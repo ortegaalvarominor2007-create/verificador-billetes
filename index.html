@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verificador Billetes Serie B</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0a3d62">
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+
+<style>
+body{
+    font-family: Arial;
+    text-align:center;
+    background:#f2f2f2;
+    margin:0;
+}
+
+header{
+    background:#0a3d62;
+    color:white;
+    padding:15px;
+}
+
+video{
+    width:95%;
+    max-width:400px;
+    border:3px solid #333;
+    border-radius:10px;
+    margin-top:15px;
+}
+
+.guia{
+    position:relative;
+    display:inline-block;
+}
+
+.rectangulo{
+    position:absolute;
+    border:3px dashed red;
+    width:60%;
+    height:20%;
+    top:40%;
+    left:20%;
+}
+
+button{
+    margin:15px;
+    padding:12px 25px;
+    font-size:16px;
+    border:none;
+    border-radius:8px;
+    background:#0a3d62;
+    color:white;
+    cursor:pointer;
+}
+
+#resultado{
+    font-size:22px;
+    font-weight:bold;
+    margin:15px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h2>Verificador Billetes Serie B</h2>
+</header>
+
+<div class="guia">
+<video id="video" autoplay playsinline></video>
+<div class="rectangulo"></div>
+</div>
+
+<br>
+<button onclick="capturar()">Escanear Serie</button>
+
+<div id="resultado"></div>
+
+<script>
+
+// ===== REGISTRO SERVICE WORKER =====
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
+
+// ===== RANGOS =====
+
+const rangos = [
+
+[67250001,67700000],[69050001,69500000],[69500001,69950000],
+[69950001,70400000],[70400001,70850000],[70850001,71300000],
+[76310012,85139995],[86400001,86850000],[90900001,91350000],
+[91800001,92250000],
+
+[87280145,91646549],[96650001,97100000],[99800001,100250000],
+[100250001,100700000],[109250001,109700000],
+[110600001,111050000],[111050001,111500000],
+[111950001,112400000],[112400001,112850000],
+[112850001,113300000],[114200001,114650000],
+[114650001,115100000],[115100001,115550000],
+[118700001,119150000],[119150001,119600000],
+[120500001,120950000],
+
+[77100001,77550000],[78000001,78450000],
+[78900001,96350000],[96350001,96800000],
+[96800001,97250000],[98150001,98600000],
+[104900001,105350000],[105350001,105800000],
+[106700001,107150000],[107600001,108050000],
+[108050001,108500000],[109400001,109850000]
+];
+
+const video = document.getElementById('video');
+const resultado = document.getElementById('resultado');
+
+navigator.mediaDevices.getUserMedia({ video: { facingMode:"environment" } })
+.then(stream => video.srcObject = stream)
+.catch(() => alert("No se pudo acceder a la cámara"));
+
+function estaInhabilitado(numero){
+    return rangos.some(r => numero >= r[0] && numero <= r[1]);
+}
+
+function capturar(){
+
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video,0,0);
+
+    resultado.innerHTML = "Analizando...";
+    resultado.style.color = "black";
+
+    Tesseract.recognize(canvas,'eng')
+    .then(({data:{text}})=>{
+
+        const limpio = text.replace(/\s/g,'').toUpperCase();
+        const regex = /([0-9]{8,9})B/;
+        const match = limpio.match(regex);
+
+        if(match){
+
+            const numero = parseInt(match[1]);
+
+            if(estaInhabilitado(numero)){
+                resultado.innerHTML = "🔴 BILLETE INHABILITADO<br>Serie: "+match[0];
+                resultado.style.color="red";
+            }else{
+                resultado.innerHTML = "🟢 NO FIGURA COMO INHABILITADO<br>Serie: "+match[0];
+                resultado.style.color="green";
+            }
+
+        }else{
+            resultado.innerHTML="No se detectó serie válida (########B)";
+            resultado.style.color="black";
+        }
+
+    });
+
+}
+
+</script>
+
+</body>
+</html>
