@@ -141,25 +141,32 @@ function capturar(){
     .then(({data:{text}})=>{
 
         const limpio = text.replace(/\s/g,'').toUpperCase();
-        const regex = /([0-9]{8,9})B/;
-        const match = limpio.match(regex);
+        const regex = /([0-9]{8,9})([A-Z])/;
+const match = limpio.match(regex);
 
-        if(match){
+if(match){
 
-            const numero = parseInt(match[1]);
+    const numero = parseInt(match[1]);
+    const letra = match[2];
 
-            if(estaInhabilitado(numero)){
-                resultado.innerHTML = "🔴 BILLETE INHABILITADO<br>Serie: "+match[0];
-                resultado.style.color="red";
-            }else{
-                resultado.innerHTML = "🟢 NO FIGURA COMO INHABILITADO<br>Serie: "+match[0];
-                resultado.style.color="green";
-            }
+    if(letra !== "B"){
+        resultado.innerHTML = "NINGÚN BILLETE DE ESTA SERIE ESTÁ DESHABILITADO<br>Serie: "+match[0];
+        resultado.style.color = "blue";
+        return;
+    }
 
-        }else{
-            resultado.innerHTML="No se detectó serie válida (########B)";
-            resultado.style.color="black";
-        }
+    if(estaInhabilitado(numero)){
+        resultado.innerHTML = "🔴 BILLETE INHABILITADO<br>Serie: "+match[0];
+        resultado.style.color="red";
+    }else{
+        resultado.innerHTML = "🟢 NO FIGURA COMO INHABILITADO<br>Serie: "+match[0];
+        resultado.style.color="green";
+    }
+
+}else{
+    resultado.innerHTML="No se detectó serie válida (########A/B/C...)";
+    resultado.style.color="black";
+}
 
     });
 
